@@ -1,0 +1,568 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Trading Global</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #00ffff;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 1000px;
+    }
+    .clock {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+    .clock div {
+      margin: 10px;
+      padding: 10px;
+      background-color: #2a2a2a;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 200px;
+    }
+  
+    .open-text {
+      color: #00ff00;
+      font-weight: bold;
+    }
+    .closed-text {
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+#timers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+.forex-status.abierto {
+  color: #00ff00;
+  font-weight: bold;
+}
+.forex-status.cerrado {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  #timers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .forex-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .forex-table {
+    width: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  #timers {
+    grid-template-columns: 1fr !important;
+  }
+  .forex-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .forex-table {
+    width: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  #timers {
+    grid-template-columns: 1fr !important;
+  }
+  .reloj-grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+  .forex-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .forex-table {
+    width: 600px;
+  }
+}
+</style>
+    
+    
+    
+    
+    
+
+<style>
+  .forex-panel {
+    text-align: center;
+    margin-top: 30px;
+  }
+  .forex-status {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  .forex-status.abierto {
+  color: #00ff00;
+  text-shadow: 0 0 2px #00ff00;
+    color: #00ff00;
+  }
+  .forex-status.cerrado {
+  color: #ff4444;
+  text-shadow: 0 0 2px #ff4444;
+    color: #ff4444;
+  }
+  .forex-timer {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  .forex-table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 90%;
+    max-width: 800px;
+  }
+  .forex-table th, .forex-table td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: center;
+  }
+  .forex-table th {
+    background-color: #222;
+    color: #fff;
+  }
+
+.forex-status.abierto {
+  color: #00ff00;
+  font-weight: bold;
+}
+.forex-status.cerrado {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  #timers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .forex-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .forex-table {
+    width: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  #timers {
+    grid-template-columns: 1fr !important;
+  }
+  .forex-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .forex-table {
+    width: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  #timers {
+    grid-template-columns: 1fr !important;
+  }
+  .reloj-grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+  .forex-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  .forex-table {
+    width: 600px;
+  }
+}
+</style>
+    
+    
+    
+    
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Panel de Trading Global</h1>
+
+  <div class="section">
+    <h2>🕒 Ciudad / Fecha / Hora</h2>
+    <div class="clock" id="timezones"></div>
+  </div>
+
+  <script>
+    const cities = [
+      { name: "🇫🇮 Finlandia", zone: "Europe/Helsinki" },
+      { name: "🇵🇪 Lima, Perú", zone: "America/Lima" },
+      { name: "🇺🇸 Nueva York", zone: "America/New_York" },
+      { name: "🇦🇪 Dubai", zone: "Asia/Dubai" },
+      { name: "🇪🇸 Madrid", zone: "Europe/Madrid" },
+      { name: "🇨🇳 Pekín", zone: "Asia/Shanghai" }
+    ];
+
+    
+    
+    function updateTimezones() {
+      const container = document.getElementById("timezones");
+      container.innerHTML = "";
+      const codeMap = {
+        '🇫🇮': 'fi', '🇵🇪': 'pe', '🇺🇸': 'us', '🇦🇪': 'ae', '🇪🇸': 'es', '🇨🇳': 'cn'
+      };
+
+      cities.forEach(city => {
+        const now = new Date();
+
+        const options = {
+          timeZone: city.zone,
+          weekday: 'long',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hourCycle: 'h23'
+        };
+
+        const dateStr = new Intl.DateTimeFormat("es-PE", options).formatToParts(now);
+        let weekday = "", hour = "", minute = "", second = "", day = "", month = "", year = "";
+
+        dateStr.forEach(part => {
+          if (part.type === "weekday") weekday = part.value;
+          else if (part.type === "hour") hour = part.value;
+          else if (part.type === "minute") minute = part.value;
+          else if (part.type === "second") second = part.value;
+          else if (part.type === "day") day = part.value;
+          else if (part.type === "month") month = part.value;
+          else if (part.type === "year") year = part.value;
+        });
+
+        // Capitalizar la primera letra del día
+        weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+        const hourStr = parseInt(hour, 10);
+        const iconEmoji = (hourStr < 6 || hourStr >= 18) ? '🌑' : '☀️';
+
+        const div = document.createElement("div");
+        const [code, ...cityName] = city.name.split(' ');
+        const imgCode = codeMap[code] || 'globe';
+        const flagImg = `<img src="https://flagcdn.com/w80/${imgCode}.png" width="40" alt="Bandera">`;
+
+        div.innerHTML = ''
+          + flagImg
+          + "<div style='margin-top: 8px; font-weight: bold;'>" + cityName.join(' ') + "</div>"
+          + "<div style='margin-top: 4px;'>" + iconEmoji + " " + hour + ":" + minute + ":" + second + "</div>"
+          + "<div style='margin-top: 4px;'>" + weekday + ", " + day + "/" + month + "/" + year + "</div>";
+
+        container.appendChild(div);
+      });
+    }
+    updateTimezones();
+    setInterval(updateTimezones, 1000);
+  </script>
+
+  <div class="section">
+    <h2>⏱️ Cronómetros de mercados</h2>
+    <div class="clock" id="timers"></div>
+  </div>
+
+  <script>
+    const markets = [
+  { name: "🇺🇸 Nueva York (NYSE)", open: "09:30", close: "16:00", zone: "America/New_York" },
+  { name: "🇯🇵 Tokio (TSE)",        open: "09:00", close: "15:30", zone: "Asia/Tokyo" },
+  { name: "🇨🇳 Shanghái (SSE)",     open: "09:30", close: "15:00", zone: "Asia/Shanghai" },
+  { name: "🇦🇺 Sídney (ASX)",       open: "10:00", close: "16:00", zone: "Australia/Sydney" },
+  { name: "🇪🇸 Madrid (BME)",       open: "09:00", close: "17:30", zone: "Europe/Madrid" },
+  { name: "🇩🇪 Frankfurt (Xetra)",  open: "09:00", close: "17:30", zone: "Europe/Berlin" },
+  { name: "🇬🇧 Londres (LSE)",      open: "08:00", close: "16:30", zone: "Europe/London" },
+  { name: "🇮🇳 Bombay (BSE)",       open: "09:15", close: "15:30", zone: "Asia/Kolkata" }
+];
+
+    function formatTime(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.floor(sec % 60);
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    
+    function updateMarketTimers() {
+  const container = document.getElementById("timers");
+  container.innerHTML = "";
+
+  const flagCodeMap = {
+    '🇺🇸': 'us', '🇯🇵': 'jp', '🇨🇳': 'cn', '🇬🇧': 'gb',
+    '🇪🇸': 'es', '🇩🇪': 'de', '🇦🇺': 'au', '🇮🇳': 'in'
+  };
+
+  markets.forEach(market => {
+    const now = new Date();
+    const marketNow = new Date(now.toLocaleString("en-US", { timeZone: market.zone }));
+
+    const localTimeStr = marketNow.toLocaleTimeString("es-PE", {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    });
+
+    const [openH, openM] = market.open.split(":").map(Number);
+    const [closeH, closeM] = market.close.split(":").map(Number);
+
+    const openTime = new Date(marketNow);
+    openTime.setHours(openH, openM, 0, 0);
+
+    const closeTime = new Date(marketNow);
+    closeTime.setHours(closeH, closeM, 0, 0);
+
+    const horario = `📅 ${market.open} - ${market.close}`;
+    const reloj = `⏰ Hora local: ${localTimeStr}`;
+
+    let status = "", cssClass = "";
+
+    if (marketNow >= openTime && marketNow < closeTime) {
+      const left = (closeTime - marketNow) / 1000;
+      status = `<span class="open-text">🟢 Abierto</span><br>Cierra en ${formatTime(left)}`;
+      cssClass = "open";
+    } else {
+      // calcular correctamente el siguiente openTime
+      let nextOpen = new Date(openTime);
+      if (marketNow >= closeTime) {
+        nextOpen.setDate(nextOpen.getDate() + 1);
+      }
+      const left = (nextOpen - marketNow) / 1000;
+      const warning = (left < 1800) ? "🛎️ " : "";
+      status = `<span class="closed-text">🔴 Cerrado</span><br>${warning}Abre en ${formatTime(left)}`;
+      cssClass = "closed";
+    }
+
+    const div = document.createElement("div");
+    div.className = cssClass;
+
+    const [flag, ...nameParts] = market.name.split(' ');
+    const imgCode = flagCodeMap[flag] || 'globe';
+    const flagDisplay = `<img src="https://flagcdn.com/w80/${imgCode}.png" width="40" alt="Bandera">`;
+
+    div.innerHTML = `
+      ${flagDisplay}
+      <div style='margin-top: 8px; font-weight: bold;'>${nameParts.join(' ')}</div>
+      <div style='margin-top: 4px;'>${reloj}</div>
+      <div style='margin-top: 4px;'>${horario}</div>
+      <div style='margin-top: 4px;'>${status}</div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+updateMarketTimers();
+setInterval(updateMarketTimers, 1000);
+
+  </script>
+
+<div class="section">
+  <h2 style="text-align: center;">💱 Mercado Forex / CFDs</h2>
+  <div class="forex-panel"><div class="forex-status" id="statusText"></div>
+  <div class="forex-timer" id="countdown"></div></div>
+  <h3 style="text-align: center; margin-top: 20px;">Horarios locales de apertura y cierre</h3>
+  <div class="forex-table-wrapper"><table class="forex-table">
+<tr>
+<th>País</th>
+<th>Ciudad</th>
+<th>Abre</th>
+<th>Cierra</th>
+</tr>
+<tr>
+<td>🇵🇪 Perú</td>
+<td>Lima</td>
+<td>Domingo 5:00 PM</td>
+<td>Viernes 4:00 PM</td>
+</tr>
+<tr>
+<td>🇫🇮 Finlandia</td>
+<td>Helsinki</td>
+<td>Lunes 12:00 AM</td>
+<td>Viernes 11:00 PM</td>
+</tr>
+<tr>
+<td>🇺🇸 Estados Unidos</td>
+<td>New York</td>
+<td>Domingo 6:00 PM</td>
+<td>Viernes 5:00 PM</td>
+</tr>
+<tr>
+<td>🇬🇧 Reino Unido</td>
+<td>Londres</td>
+<td>Domingo 10:00 PM</td>
+<td>Viernes 9:00 PM</td>
+</tr>
+<tr>
+<td>🇯🇵 Japón</td>
+<td>Tokio</td>
+<td>Lunes 7:00 AM</td>
+<td>Viernes 6:00 AM</td>
+</tr>
+</table></div>
+</div>
+
+<script>
+
+    function getMarketStatus() {
+      const now = new Date();
+      const utcNow = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+      const utcDay = utcNow.getUTCDay();
+      const utcHours = utcNow.getUTCHours();
+      const utcMinutes = utcNow.getUTCMinutes();
+
+      let marketOpen = false;
+      let targetTime = new Date(utcNow);
+
+      if (
+        (utcDay > 0 && utcDay < 5) || // Monday to Thursday
+        (utcDay === 5 && utcHours < 21) || // Friday before 21:00 UTC
+        (utcDay === 0 && utcHours >= 22) // Sunday after 22:00 UTC
+      ) {
+        marketOpen = true;
+        // Set next close: Friday 21:00 UTC
+        const daysUntilFriday = (5 - utcDay + 7) % 7;
+        targetTime.setUTCDate(utcNow.getUTCDate() + daysUntilFriday);
+        targetTime.setUTCHours(21, 0, 0, 0);
+      } else {
+        marketOpen = false;
+        // Set next open: Sunday 22:00 UTC
+        const daysUntilSunday = (7 - utcDay + (utcDay === 6 ? 1 : 0)) % 7;
+        targetTime.setUTCDate(utcNow.getUTCDate() + daysUntilSunday);
+        targetTime.setUTCHours(22, 0, 0, 0);
+      }
+
+      const diff = targetTime - utcNow;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      return {
+        marketOpen,
+        countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+      };
+    }
+
+    function updateClock() {
+      const status = getMarketStatus();
+
+      document.getElementById("statusText").innerHTML = status.marketOpen
+        ? '<span class="open">🟢 Mercado ABIERTO</span><br>Cierra en:'
+        : '<span class="closed">🔴 Mercado CERRADO</span><br>Abre en:';
+
+      document.getElementById("countdown").textContent = status.countdown;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+  
+</script>
+<script>
+function updateForexStatus() {
+    const now = new Date();
+    const utcDay = now.getUTCDay(); // 0 = domingo, 5 = viernes, 6 = sábado
+    const utcHour = now.getUTCHours();
+    const utcMinute = now.getUTCMinutes();
+    const totalMinutes = utcHour * 60 + utcMinute;
+
+    let isOpen =
+      (utcDay > 0 && utcDay < 5) || // lunes a jueves
+      (utcDay === 0 && totalMinutes >= 1020) || // domingo desde 17:00 UTC
+      (utcDay === 5 && totalMinutes < 1020);    // viernes antes de 17:00 UTC
+
+    const statusText = document.getElementById("statusText");
+    const countdown = document.getElementById("countdown");
+
+    function formatTime(seconds) {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${hrs.toString().padStart(2, '0')}:${mins
+        .toString()
+        .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    const nowTimestamp = now.getTime() / 1000;
+    let targetTimestamp;
+
+    if (isOpen) {
+      statusText.className = "forex-status abierto";
+      statusText.innerHTML = "🟢 Mercado ABIERTO";
+      // viernes 17:00 UTC
+      const nextClose = new Date(now);
+      nextClose.setUTCHours(17, 0, 0, 0);
+      if (utcDay > 5 || (utcDay === 5 && totalMinutes >= 1020)) {
+        nextClose.setUTCDate(nextClose.getUTCDate() + ((7 - utcDay) % 7 + 5));
+      } else {
+        nextClose.setUTCDate(nextClose.getUTCDate() + (5 - utcDay));
+      }
+      targetTimestamp = nextClose.getTime() / 1000;
+    } else {
+      statusText.className = "forex-status cerrado";
+      statusText.innerHTML = "🔴 Mercado CERRADO";
+      // domingo 17:00 UTC
+      const nextOpen = new Date(now);
+      nextOpen.setUTCHours(17, 0, 0, 0);
+      if (utcDay >= 5) {
+        nextOpen.setUTCDate(nextOpen.getUTCDate() + ((7 - utcDay) % 7 + 0));
+      } else {
+        nextOpen.setUTCDate(nextOpen.getUTCDate() + ((7 - utcDay) % 7));
+      }
+      targetTimestamp = nextOpen.getTime() / 1000;
+    }
+
+    const secondsLeft = targetTimestamp - nowTimestamp;
+    countdown.innerHTML = formatTime(secondsLeft);
+  }
+
+  updateForexStatus();
+  setInterval(updateForexStatus, 1000);
+</script>
+</body>
+</html>
